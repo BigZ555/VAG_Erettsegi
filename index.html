@@ -3,274 +3,488 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Érettségi Tétel Kihúzó - ONLINE</title>
+    <title>Érettségi Tétel Kihúzó v2</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .subject-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
-        @media (max-width: 768px) { .subject-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 480px) { .subject-grid { grid-template-columns: 1fr; } }
-        .topic-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; }
-        @media (max-width: 768px) { .topic-grid { grid-template-columns: repeat(4, 1fr); } }
-        @media (max-width: 480px) { .topic-grid { grid-template-columns: repeat(3, 1fr); } }
-        .drawn { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%) !important; border-color: #f87171 !important; transform: scale(1.05) !important; box-shadow: 0 10px 30px rgba(248, 113, 113, 0.4) !important; }
-        .online { animation: pulse 2s infinite; }
+        * { font-family: 'DM Sans', sans-serif; }
+        h1, h2, h3, .font-display { font-family: 'Syne', sans-serif; }
+
+        body { background: #0f1117; color: #f0f0f0; }
+
+        .card-glass {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+        }
+        .card-glass:hover {
+            background: rgba(255,255,255,0.09);
+            border-color: rgba(99,231,180,0.5);
+            transform: translateY(-3px);
+            box-shadow: 0 20px 60px rgba(99,231,180,0.1);
+        }
+
+        .subject-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.25rem; }
+        @media(max-width:640px){ .subject-grid { grid-template-columns: repeat(2,1fr); gap: .75rem; } }
+
+        .topic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .875rem; }
+        @media(max-width:640px){ .topic-grid { grid-template-columns: repeat(2,1fr); } }
+
+        .topic-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .topic-card:hover:not(.drawn) {
+            background: rgba(99,231,180,0.08);
+            border-color: rgba(99,231,180,0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(99,231,180,0.15);
+        }
+        .topic-card.drawn {
+            background: rgba(239,68,68,0.12);
+            border-color: rgba(239,68,68,0.4);
+            cursor: default;
+        }
+        .topic-card.drawn:hover { transform: none; }
+
+        .pulse-dot { animation: pulse-anim 2s infinite; }
+        @keyframes pulse-anim {
+            0%,100% { opacity:1; transform: scale(1); }
+            50% { opacity:.6; transform: scale(1.1); }
+        }
+
+        .modal-backdrop {
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(6px);
+        }
+
+        .modal-panel {
+            background: #161820;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            overflow: hidden;
+        }
+
+        .progress-bar { height: 4px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #63e7b4, #60a5fa); transition: width .4s ease; border-radius: 99px; }
+
+        input, textarea {
+            background: rgba(255,255,255,0.06) !important;
+            border: 1px solid rgba(255,255,255,0.12) !important;
+            color: #f0f0f0 !important;
+            border-radius: 10px !important;
+            outline: none !important;
+        }
+        input:focus, textarea:focus {
+            border-color: rgba(99,231,180,0.5) !important;
+            box-shadow: 0 0 0 3px rgba(99,231,180,0.1) !important;
+        }
+        input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.3) !important; }
+
+        .btn-green {
+            background: linear-gradient(135deg, #63e7b4, #22d3ee);
+            color: #0f1117;
+            font-weight: 700;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .btn-green:hover { opacity:.9; transform: scale(1.02); }
+
+        .btn-red {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            font-weight: 700;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .btn-red:hover { opacity:.9; transform: scale(1.02); }
+
+        .btn-gray {
+            background: rgba(255,255,255,0.1);
+            color: #ccc;
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .btn-gray:hover { background: rgba(255,255,255,0.15); }
+
+        /* Topic name editor table */
+        .name-row { display: flex; align-items: center; gap: .5rem; padding: .4rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .name-row:last-child { border-bottom: none; }
+        .name-num { min-width: 36px; font-weight: 700; color: #63e7b4; font-size: .9rem; }
+        .name-input { flex:1; padding: .4rem .7rem; font-size: .85rem; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-6xl">
-        <!-- HEADER -->
-        <div class="text-center mb-16">
-            <h1 class="text-4xl md:text-6xl font-black bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent mb-6 drop-shadow-2xl">
-                🎓 Érettségi Tétel Kihúzó
-            </h1>
-            <p class="text-xl md:text-2xl text-gray-700 mb-8 font-semibold">Valós idejű szinkron - mindenki látja! 🚀</p>
-            
-            <!-- ONLINE INDICATOR -->
-            <div id="onlineIndicator" class="inline-flex items-center gap-4 bg-emerald-100 border-4 border-emerald-300 rounded-3xl px-8 py-4 mb-8 shadow-2xl backdrop-blur-sm font-bold text-xl online">
-                <div class="w-6 h-6 bg-emerald-500 rounded-full animate-ping"></div>
-                <span>🟢 ONLINE - Szinkronizálva</span>
-                <span id="lastSync" class="bg-white/50 px-4 py-2 rounded-xl font-black text-emerald-700 ml-4">most</span>
-            </div>
-            
-            <!-- ADMIN BUTTON -->
-            <button id="adminBtn" class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold py-4 px-12 rounded-3xl text-xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300 inline-flex items-center gap-3">
-                <i class="fas fa-crown text-2xl"></i>Admin Reset
+<body>
+<div class="container mx-auto px-4 py-10 max-w-6xl">
+
+    <!-- HEADER -->
+    <div class="text-center mb-12">
+        <h1 class="font-display text-5xl md:text-7xl font-extrabold mb-4" style="background: linear-gradient(135deg,#63e7b4,#60a5fa,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+            ÉRETTSÉGI
+        </h1>
+        <p class="text-gray-400 text-lg mb-6">Tétel kihúzó — valós idejű szinkron</p>
+
+        <div class="inline-flex items-center gap-3 px-6 py-3 rounded-full mb-6" style="background:rgba(99,231,180,0.08); border:1px solid rgba(99,231,180,0.2);">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 pulse-dot"></span>
+            <span class="text-emerald-400 font-semibold text-sm">ONLINE</span>
+            <span class="text-gray-500 text-sm">·</span>
+            <span id="lastSync" class="text-gray-400 text-sm">szinkronizálás...</span>
+        </div>
+
+        <div class="flex justify-center gap-3">
+            <button id="adminBtn" class="btn-red px-6 py-2.5 text-sm flex items-center gap-2">
+                <i class="fas fa-crown"></i> Admin
+            </button>
+            <button id="editNamesBtn" class="btn-green px-6 py-2.5 text-sm flex items-center gap-2">
+                <i class="fas fa-pen"></i> Tételek neve
             </button>
         </div>
+    </div>
 
-        <!-- FŐMENÜ -->
-        <div id="mainMenu" class="subject-grid mb-16"></div>
+    <!-- SUBJECT GRID -->
+    <div id="mainMenu" class="subject-grid"></div>
 
-        <!-- TÉTELLISTA MODAL -->
-        <div id="topicModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4 hidden">
-            <div class="bg-white w-full max-w-6xl max-h-[90vh] rounded-4xl shadow-3xl overflow-hidden flex flex-col">
-                <div class="bg-gradient-to-r from-emerald-500 to-blue-500 text-white p-8 sticky top-0 z-10">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h2 id="modalTitle" class="text-3xl md:text-4xl font-black mb-2"></h2>
-                            <div id="drawnCount" class="text-2xl font-bold bg-white/30 px-6 py-3 rounded-2xl backdrop-blur-sm inline-flex items-center gap-2"></div>
+    <!-- ─── TOPIC LIST MODAL ─── -->
+    <div id="topicModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden">
+        <div class="modal-panel w-full max-w-5xl max-h-[92vh] flex flex-col">
+            <div class="p-6 flex items-start justify-between" style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                <div class="flex-1">
+                    <h2 id="modalTitle" class="font-display text-3xl font-bold mb-2"></h2>
+                    <div class="flex items-center gap-3">
+                        <div id="drawnCountBadge" class="text-sm px-3 py-1 rounded-full" style="background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3);"></div>
+                        <div class="progress-bar flex-1 max-w-xs">
+                            <div id="progressFill" class="progress-fill" style="width:0%"></div>
                         </div>
-                        <button id="closeTopicModal" class="text-3xl p-4 rounded-3xl hover:bg-white/30 transition-all hover:scale-110">
-                            <i class="fas fa-times"></i>
-                        </button>
                     </div>
                 </div>
-                <div id="topicList" class="p-8 flex-1 overflow-y-auto topic-grid pb-24">
-                    <!-- 30 TÉTEL -->
-                </div>
+                <button id="closeTopicModal" class="btn-gray p-2.5 ml-4">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
+            <div id="topicList" class="p-6 flex-1 overflow-y-auto topic-grid pb-6"></div>
         </div>
+    </div>
 
-        <!-- CONFIRM MODAL -->
-        <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4 hidden">
-            <div class="bg-white p-12 rounded-4xl shadow-3xl max-w-lg w-full text-center">
-                <div class="w-32 h-32 bg-yellow-100 rounded-4xl mx-auto mb-8 flex items-center justify-center shadow-2xl border-4 border-yellow-200">
-                    <i class="fas fa-exclamation-triangle text-6xl text-yellow-500"></i>
-                </div>
-                <h3 id="confirmTitle" class="text-3xl font-black text-gray-800 mb-6 leading-tight"></h3>
-                <p class="text-xl text-gray-600 mb-12 font-medium">Mindenki látni fogja valós időben! 🚀</p>
-                <div class="flex gap-6">
-                    <button id="confirmYes" class="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-black py-6 px-8 rounded-3xl text-xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3">
-                        <i class="fas fa-check-double text-xl"></i>Igen, kihúzták!
-                    </button>
-                    <button id="confirmNo" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-black py-6 px-8 rounded-3xl text-xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3">
-                        <i class="fas fa-times text-xl"></i>Mégse
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ADMIN MODAL -->
-        <div id="adminModal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4 hidden">
-            <div class="bg-white p-12 rounded-4xl shadow-3xl max-w-md w-full">
-                <h3 class="text-4xl font-black text-gray-800 mb-8 text-center flex items-center justify-center gap-4">
-                    <i class="fas fa-crown text-yellow-500 text-3xl"></i>Admin
-                </h3>
-                <input type="password" id="adminPass" placeholder="Admin jelszó" class="w-full p-6 border-4 border-gray-200 rounded-3xl text-2xl mb-8 focus:border-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-100 text-center font-bold">
-                <div class="flex gap-4">
-                    <button id="adminResetBtn" class="flex-1 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-black py-6 px-8 rounded-3xl text-xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300 flex items-center justify-center gap-3">
-                        <i class="fas fa-broom text-xl"></i>RESET MINDEN
-                    </button>
-                    <button id="adminCloseBtn" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-black py-6 px-8 rounded-3xl text-xl hover:scale-105 transition-all duration-300">
-                        Mégse
-                    </button>
-                </div>
-                <p class="text-sm text-gray-500 mt-4 text-center">Jelszó: <strong>admin2024</strong></p>
+    <!-- ─── CONFIRM MODAL ─── -->
+    <div id="confirmModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden">
+        <div class="modal-panel max-w-md w-full p-8 text-center">
+            <div class="text-5xl mb-4">🎲</div>
+            <h3 id="confirmTitle" class="font-display text-2xl font-bold mb-2"></h3>
+            <p id="confirmTopicName" class="text-gray-400 mb-6 text-sm min-h-[1.5rem]"></p>
+            <p class="text-gray-500 text-sm mb-8">Mindenki látni fogja valós időben!</p>
+            <div class="flex gap-3">
+                <button id="confirmYes" class="btn-green flex-1 py-3 flex items-center justify-center gap-2">
+                    <i class="fas fa-check"></i> Igen, kihúzták!
+                </button>
+                <button id="confirmNo" class="btn-gray flex-1 py-3">Mégse</button>
             </div>
         </div>
     </div>
 
-    <!-- 🔥 FIREBASE REALTIME DATABASE -->
-    <script type="module">
-        // ✅ BEILLESZTETT URL!
-        const firebaseConfig = {
-            databaseURL: "https://erettsegi-c971a-default-rtdb.europe-west1.firebasedatabase.app/"
-        };
+    <!-- ─── ADMIN MODAL ─── -->
+    <div id="adminModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden">
+        <div class="modal-panel max-w-sm w-full p-8">
+            <h3 class="font-display text-2xl font-bold mb-6 flex items-center gap-3">
+                <i class="fas fa-crown text-yellow-400"></i> Admin reset
+            </h3>
+            <input type="password" id="adminPass" placeholder="Jelszó" class="w-full p-3 mb-4 text-base">
+            <div class="flex gap-3">
+                <button id="adminResetBtn" class="btn-red flex-1 py-3 flex items-center justify-center gap-2">
+                    <i class="fas fa-broom"></i> Reset minden
+                </button>
+                <button id="adminCloseBtn" class="btn-gray flex-1 py-3">Mégse</button>
+            </div>
+            <p class="text-xs text-gray-600 mt-4 text-center">Jelszó: <code class="text-gray-400">VAGBigZ</code></p>
+        </div>
+    </div>
 
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+    <!-- ─── EDIT NAMES MODAL ─── -->
+    <div id="editNamesModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden">
+        <div class="modal-panel w-full max-w-2xl max-h-[92vh] flex flex-col">
+            <div class="p-6 flex items-center justify-between" style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                <h3 class="font-display text-2xl font-bold">✏️ Tételek neve</h3>
+                <button id="closeEditNames" class="btn-gray p-2.5"><i class="fas fa-times"></i></button>
+            </div>
 
-        // INIT
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const topicsRef = ref(db, 'tetelek');
+            <!-- Subject selector -->
+            <div class="px-6 pt-4 pb-2 flex flex-wrap gap-2" id="editSubjectTabs"></div>
 
-        // TÁRGYAK
-        const subjects = {
-            magyar: { name: '🇭🇺 Magyar Nyelv', short: 'Magyar', icon: '📚' },
-            angol: { name: '🇬🇧 Angol Nyelv', short: 'Angol', icon: '🗣️' },
-            szlovak: { name: '🇸🇰 Szlovák Nyelv', short: 'Szlovák', icon: '📖' },
-            foldrajz: { name: '🌍 Földrajz', short: 'Földrajz', icon: '🌎' },
-            tori: { name: '🏛️ Történelem', short: 'Történelem', icon: '🏺' },
-            polgari: { name: '⚖️ Polgári', short: 'Polgári', icon: '📜' },
-            biosz: { name: '🧬 Biológia', short: 'Biológia', icon: '🔬' },
-            kemia: { name: '🧪 Kémia', short: 'Kémia', icon: '⚗️' },
-            matek: { name: '📐 Matematika', short: 'Matek', icon: '📈' },
-            informatika: { name: '💻 Informatika', short: 'Informatika', icon: '🖥️' }
-        };
+            <!-- Name inputs -->
+            <div class="flex-1 overflow-y-auto px-6 pb-4" id="editNamesList"></div>
 
-        let drawnTopics = {};
-        let currentSubjectKey = null;
-        let currentTopicNumber = null;
-        const ADMIN_PASSWORD = 'VAGBigZ'; // Változtasd meg!
+            <div class="p-6 flex gap-3" style="border-top:1px solid rgba(255,255,255,0.08);">
+                <button id="saveNamesBtn" class="btn-green flex-1 py-3 flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i> Mentés Firebase-be
+                </button>
+                <button id="closeEditNames2" class="btn-gray px-6 py-3">Mégse</button>
+            </div>
+        </div>
+    </div>
 
-        // 🔥 VALÓS IDEJŰ SZINKRONIZÁLÁS
-        onValue(topicsRef, (snapshot) => {
-            drawnTopics = snapshot.val() || {};
-            updateMainMenu();
-            if (currentSubjectKey) generateTopicList();
-            document.getElementById('lastSync').textContent = new Date().toLocaleTimeString('hu-HU');
-        }, { onlyOnce: false });
+</div>
 
-        // 🔥 TÉTEL JELÖLÉSE - MINDENKI LÁTJA!
-        window.markTopicDrawn = async function(subject, topic) {
-            if (!drawnTopics[subject]) drawnTopics[subject] = {};
-            drawnTopics[subject][topic] = true;
-            await set(topicsRef, drawnTopics);
-        };
+<!-- 🔥 FIREBASE -->
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getDatabase, ref, onValue, set, update, get } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
-        // 🔥 RESET - MINDENKI LÁTJA!
-        window.resetAllTopics = async function() {
-            await set(topicsRef, {});
-        };
+    const firebaseConfig = {
+        databaseURL: "https://erettsegi-c971a-default-rtdb.europe-west1.firebasedatabase.app/"
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const topicsRef = ref(db, 'tetelek');
 
-        // FŐMENÜ GENERÁLÁS
-        function updateMainMenu() {
-            const menu = document.getElementById('mainMenu');
-            menu.innerHTML = '';
-            Object.entries(subjects).forEach(([key, subject]) => {
-                const drawnCount = Object.keys(drawnTopics[key] || {}).length;
-                const menuItem = document.createElement('div');
-                menuItem.className = `bg-white/90 backdrop-blur-xl p-10 rounded-4xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-400 cursor-pointer group border-4 border-white/50 hover:border-emerald-400 hover:bg-emerald-50 text-center`;
-                menuItem.innerHTML = `
-                    <div class="text-6xl mb-8 group-hover:scale-110 transition-transform duration-500">${subject.icon}</div>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-6 group-hover:text-emerald-600 transition-all duration-300">${subject.name}</h3>
-                    <div class="text-4xl font-black">
-                        <span class="text-red-500 drop-shadow-lg">${drawnCount}</span>
-                        <span class="text-2xl text-gray-400 mx-2">/</span>
-                        <span class="text-xl font-bold text-gray-600">30</span>
-                    </div>
-                `;
-                menuItem.onclick = () => openTopicList(key);
-                menu.appendChild(menuItem);
-            });
-        }
+    const subjects = {
+        magyar:      { name: '🇭🇺 Magyar Nyelv',   icon: '📚' },
+        angol:       { name: '🇬🇧 Angol Nyelv',    icon: '🗣️' },
+        szlovak:     { name: '🇸🇰 Szlovák Nyelv',  icon: '📖' },
+        foldrajz:    { name: '🌍 Földrajz',         icon: '🌎' },
+        tori:        { name: '🏛️ Történelem',       icon: '🏺' },
+        polgari:     { name: '⚖️ Polgári',          icon: '📜' },
+        biosz:       { name: '🧬 Biológia',         icon: '🔬' },
+        kemia:       { name: '🧪 Kémia',            icon: '⚗️' },
+        matek:       { name: '📐 Matematika',       icon: '📈' },
+        informatika: { name: '💻 Informatika',      icon: '🖥️' }
+    };
 
-        // TÉTELLISTA MEGNYITÁSA
-        function openTopicList(subjectKey) {
-            currentSubjectKey = subjectKey;
-            document.getElementById('modalTitle').textContent = subjects[subjectKey].name;
-            generateTopicList();
-            document.getElementById('topicModal').classList.remove('hidden');
-        }
+    const ADMIN_PASS = 'VAGBigZ';
+    let state = {};           // full firebase data
+    let currentSubject = null;
+    let currentTopic = null;
+    let editSubject = Object.keys(subjects)[0];
 
-        // TÉTELLISTA GENERÁLÁS
-        function generateTopicList() {
-            const list = document.getElementById('topicList');
-            const subjectTopics = drawnTopics[currentSubjectKey] || {};
-            const drawnCount = Object.keys(subjectTopics).length;
-            document.getElementById('drawnCount').innerHTML = `
-                <span class="text-3xl font-black text-red-500">${drawnCount}</span>
-                <span class="text-xl text-gray-500 mx-2">/</span>
-                <span class="text-xl font-bold">30 kihúzva</span>
-                <i class="fas fa-users text-white ml-3"></i>
+    // ─── REALTIME SYNC ───
+    onValue(topicsRef, snap => {
+        state = snap.val() || {};
+        renderMainMenu();
+        if (currentSubject) renderTopicList();
+        document.getElementById('lastSync').textContent =
+            'szinkron: ' + new Date().toLocaleTimeString('hu-HU');
+    });
+
+    // ─── HELPERS ───
+    function getDrawn(sub) {
+        const d = state[sub] || {};
+        return Object.values(d).filter(v => v && v.drawn).length;
+    }
+    function getName(sub, num) {
+        return (state[sub] && state[sub][num] && state[sub][num].name) || '';
+    }
+    function isDrawn(sub, num) {
+        return !!(state[sub] && state[sub][num] && state[sub][num].drawn);
+    }
+
+    // ─── MAIN MENU ───
+    function renderMainMenu() {
+        const menu = document.getElementById('mainMenu');
+        menu.innerHTML = '';
+        Object.entries(subjects).forEach(([key, sub]) => {
+            const drawn = getDrawn(key);
+            const pct = Math.round((drawn / 30) * 100);
+            const card = document.createElement('div');
+            card.className = 'card-glass rounded-2xl p-6 cursor-pointer text-center';
+            card.innerHTML = `
+                <div class="text-4xl mb-3">${sub.icon}</div>
+                <div class="font-semibold text-sm text-gray-200 mb-3 leading-snug">${sub.name}</div>
+                <div class="progress-bar mb-2"><div class="progress-fill" style="width:${pct}%"></div></div>
+                <div class="text-xs text-gray-500">
+                    <span class="text-red-400 font-bold text-sm">${drawn}</span>
+                    <span class="text-gray-600"> / 30</span>
+                    <span class="ml-2 text-gray-600">kihúzva</span>
+                </div>
             `;
-
-            list.innerHTML = '';
-            for (let i = 1; i <= 30; i++) {
-                const isDrawn = subjectTopics[i];
-                const topicDiv = document.createElement('div');
-                topicDiv.className = `p-8 rounded-3xl cursor-pointer transition-all duration-400 border-4 shadow-xl group hover:shadow-2xl h-48 flex flex-col justify-center items-center ${
-                    isDrawn ? 'drawn' : 'bg-white border-gray-200 hover:border-emerald-400 hover:bg-gradient-to-br hover:from-emerald-50 hover:to-blue-50 hover:scale-105'
-                }`;
-                
-                topicDiv.innerHTML = `
-                    <div class="text-6xl font-black mb-6 text-gray-800 group-hover:text-emerald-600 transition-all">${i}</div>
-                    <div class="text-2xl font-bold mb-4 ${isDrawn ? 'text-red-600' : 'text-gray-800 group-hover:text-emerald-600'} tracking-wide">TÉTEL</div>
-                    ${isDrawn ? 
-                        '<div class="flex items-center gap-3 mt-auto"><i class="fas fa-check-circle text-4xl text-red-500 animate-ping"></i><span class="font-bold text-red-600 text-xl">KIHÚZTÁK!</span></div>' :
-                        '<div class="opacity-0 group-hover:opacity-100 transition-all mt-auto"><i class="fas fa-play-circle text-5xl text-emerald-500"></i></div>'
-                    }
-                `;
-                
-                if (!isDrawn) {
-                    topicDiv.onclick = () => confirmDraw(i);
-                }
-                
-                list.appendChild(topicDiv);
-            }
-        }
-
-        // MEGERŐSÍTŐ
-        function confirmDraw(topicNum) {
-            currentTopicNumber = topicNum;
-            document.getElementById('confirmTitle').textContent = `${subjects[currentSubjectKey].name} - ${topicNum}. TÉTEL`;
-            document.getElementById('confirmModal').classList.remove('hidden');
-        }
-
-        // EVENT LISTENERS
-        document.addEventListener('DOMContentLoaded', function() {
-            // Modal zárás
-            document.querySelectorAll('#closeTopicModal, #confirmNo, #adminCloseBtn').forEach(btn => {
-                btn.onclick = () => {
-                    document.querySelectorAll('#topicModal, #confirmModal, #adminModal').forEach(modal => modal.classList.add('hidden'));
-                    currentTopicNumber = null;
-                };
-            });
-
-            // IGEN gomb
-            document.getElementById('confirmYes').onclick = () => {
-                markTopicDrawn(currentSubjectKey, currentTopicNumber);
-                document.getElementById('confirmModal').classList.add('hidden');
-            };
-
-            // Admin
-            document.getElementById('adminBtn').onclick = () => document.getElementById('adminModal').classList.remove('hidden');
-            document.getElementById('adminResetBtn').onclick = () => {
-                const pass = document.getElementById('adminPass').value;
-                if (pass === ADMIN_PASSWORD) {
-                    document.getElementById('adminModal').classList.add('hidden');
-                    if (confirm('⚠️ BIZTOSAN RESETELJÜK MINDEN TÉTET?\nMinden tárgyból törlődik!')) {
-                        resetAllTopics();
-                        alert('✅ RESET KÉSZ! Mindenki látja a változást!');
-                    }
-                } else {
-                    alert('❌ Helytelen jelszó!');
-                }
-                document.getElementById('adminPass').value = '';
-            };
-
-            // Kattintás kívül
-            ['topicModal', 'confirmModal', 'adminModal'].forEach(id => {
-                document.getElementById(id).onclick = (e) => {
-                    if (e.target.id === id) e.target.classList.add('hidden');
-                };
-            });
-
-            // Inicializálás
-            updateMainMenu();
+            card.onclick = () => openTopicList(key);
+            menu.appendChild(card);
         });
-    </script>
+    }
+
+    // ─── TOPIC LIST ───
+    function openTopicList(key) {
+        currentSubject = key;
+        document.getElementById('modalTitle').textContent = subjects[key].name;
+        renderTopicList();
+        document.getElementById('topicModal').classList.remove('hidden');
+    }
+
+    function renderTopicList() {
+        const list = document.getElementById('topicList');
+        const drawn = getDrawn(currentSubject);
+        const pct = Math.round((drawn / 30) * 100);
+        document.getElementById('drawnCountBadge').textContent = `${drawn} / 30 kihúzva`;
+        document.getElementById('progressFill').style.width = pct + '%';
+
+        list.innerHTML = '';
+        for (let i = 1; i <= 30; i++) {
+            const d = isDrawn(currentSubject, i);
+            const name = getName(currentSubject, i);
+            const card = document.createElement('div');
+            card.className = 'topic-card' + (d ? ' drawn' : '');
+            card.innerHTML = `
+                <div class="flex items-start justify-between">
+                    <span class="font-display font-bold text-2xl ${d ? 'text-red-400' : 'text-emerald-400'}">${i}.</span>
+                    ${d ? '<i class="fas fa-check-circle text-red-400 text-lg mt-1"></i>' : '<i class="fas fa-circle text-gray-700 text-xs mt-2"></i>'}
+                </div>
+                <div>
+                    ${name
+                        ? `<div class="text-xs font-medium leading-snug ${d ? 'text-red-300' : 'text-gray-300'}" style="word-break:break-word;">${name}</div>`
+                        : `<div class="text-xs text-gray-600 italic">nincs cím</div>`
+                    }
+                    ${d ? '<div class="text-xs font-bold text-red-400 mt-1">KIHÚZTÁK</div>' : ''}
+                </div>
+            `;
+            if (!d) card.onclick = () => openConfirm(i);
+            list.appendChild(card);
+        }
+    }
+
+    // ─── CONFIRM ───
+    function openConfirm(num) {
+        currentTopic = num;
+        const name = getName(currentSubject, num);
+        document.getElementById('confirmTitle').textContent =
+            `${subjects[currentSubject].name} — ${num}. tétel`;
+        document.getElementById('confirmTopicName').textContent = name || '';
+        document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    // ─── MARK DRAWN ───
+    async function markDrawn(sub, num) {
+        const path = `tetelek/${sub}/${num}`;
+        const r = ref(db, path);
+        const snap = await get(r);
+        const existing = snap.val() || {};
+        await set(r, { ...existing, drawn: true });
+    }
+
+    // ─── RESET ALL ───
+    async function resetAll() {
+        // Keep names, clear drawn flags
+        const updates = {};
+        Object.keys(subjects).forEach(sub => {
+            for (let i = 1; i <= 30; i++) {
+                const name = getName(sub, i);
+                updates[`tetelek/${sub}/${i}`] = name ? { name, drawn: false } : { drawn: false };
+            }
+        });
+        await update(ref(db), updates);
+    }
+
+    // ─── EDIT NAMES MODAL ───
+    function openEditNames() {
+        renderEditSubjectTabs();
+        renderEditNamesList();
+        document.getElementById('editNamesModal').classList.remove('hidden');
+    }
+
+    function renderEditSubjectTabs() {
+        const tabs = document.getElementById('editSubjectTabs');
+        tabs.innerHTML = '';
+        Object.entries(subjects).forEach(([key, sub]) => {
+            const btn = document.createElement('button');
+            btn.className = `px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                key === editSubject
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                    : 'bg-white/5 text-gray-400 border border-white/10 hover:border-white/20'
+            }`;
+            btn.textContent = sub.name;
+            btn.onclick = () => { editSubject = key; renderEditSubjectTabs(); renderEditNamesList(); };
+            tabs.appendChild(btn);
+        });
+    }
+
+    function renderEditNamesList() {
+        const container = document.getElementById('editNamesList');
+        container.innerHTML = '';
+        for (let i = 1; i <= 30; i++) {
+            const name = getName(editSubject, i);
+            const row = document.createElement('div');
+            row.className = 'name-row';
+            row.innerHTML = `
+                <span class="name-num">${i}.</span>
+                <input class="name-input" id="name_${i}" type="text" placeholder="Tétel neve (opcionális)" value="${name ? name.replace(/"/g, '&quot;') : ''}">
+            `;
+            container.appendChild(row);
+        }
+    }
+
+    async function saveNames() {
+        const btn = document.getElementById('saveNamesBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mentés...';
+        btn.disabled = true;
+
+        const updates = {};
+        for (let i = 1; i <= 30; i++) {
+            const val = document.getElementById(`name_${i}`).value.trim();
+            const drawn = isDrawn(editSubject, i);
+            updates[`tetelek/${editSubject}/${i}`] = {
+                name: val || null,
+                drawn: drawn || false
+            };
+        }
+        await update(ref(db), updates);
+
+        btn.innerHTML = '<i class="fas fa-check"></i> Elmentve!';
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-save"></i> Mentés Firebase-be';
+            btn.disabled = false;
+        }, 1500);
+    }
+
+    // ─── EVENT LISTENERS ───
+    document.getElementById('closeTopicModal').onclick = () => {
+        document.getElementById('topicModal').classList.add('hidden');
+        currentSubject = null;
+    };
+    document.getElementById('confirmNo').onclick = () => {
+        document.getElementById('confirmModal').classList.add('hidden');
+        currentTopic = null;
+    };
+    document.getElementById('confirmYes').onclick = async () => {
+        await markDrawn(currentSubject, currentTopic);
+        document.getElementById('confirmModal').classList.add('hidden');
+        currentTopic = null;
+    };
+
+    document.getElementById('adminBtn').onclick = () =>
+        document.getElementById('adminModal').classList.remove('hidden');
+    document.getElementById('adminCloseBtn').onclick = () =>
+        document.getElementById('adminModal').classList.add('hidden');
+    document.getElementById('adminResetBtn').onclick = async () => {
+        const pass = document.getElementById('adminPass').value;
+        if (pass !== ADMIN_PASS) { alert('❌ Helytelen jelszó!'); return; }
+        if (!confirm('⚠️ Biztosan törlöd az összes kihúzást? (A nevek megmaradnak)')) return;
+        document.getElementById('adminModal').classList.add('hidden');
+        document.getElementById('adminPass').value = '';
+        await resetAll();
+        alert('✅ Reset kész!');
+    };
+
+    document.getElementById('editNamesBtn').onclick = openEditNames;
+    document.getElementById('closeEditNames').onclick = () =>
+        document.getElementById('editNamesModal').classList.add('hidden');
+    document.getElementById('closeEditNames2').onclick = () =>
+        document.getElementById('editNamesModal').classList.add('hidden');
+    document.getElementById('saveNamesBtn').onclick = saveNames;
+
+    // Close on backdrop click
+    ['topicModal','confirmModal','adminModal','editNamesModal'].forEach(id => {
+        document.getElementById(id).addEventListener('click', e => {
+            if (e.target.id === id) e.target.classList.add('hidden');
+        });
+    });
+</script>
 </body>
 </html>
