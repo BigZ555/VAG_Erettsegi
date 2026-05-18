@@ -119,6 +119,43 @@
         }
         .btn-gray:hover { background: rgba(255,255,255,0.15); }
 
+        /* Reset selector */
+        .reset-subject-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: .75rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: .75rem;
+        }
+        .reset-subject-card.selected {
+            background: rgba(239,68,68,0.12);
+            border-color: rgba(239,68,68,0.5);
+        }
+        .reset-subject-card:hover { border-color: rgba(255,255,255,0.25); }
+        .reset-topic-chip {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 40px; height: 40px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            font-size: .8rem; font-weight: 700;
+            cursor: pointer; transition: all 0.15s;
+        }
+        .reset-topic-chip.drawn-chip {
+            background: rgba(239,68,68,0.15);
+            border-color: rgba(239,68,68,0.4);
+            color: #f87171;
+        }
+        .reset-topic-chip.selected-chip {
+            background: rgba(239,68,68,0.5) !important;
+            border-color: #ef4444 !important;
+            color: white !important;
+            transform: scale(1.1);
+        }
+        .reset-topic-chip:not(.drawn-chip) { opacity: 0.3; cursor: default; }
+
         /* Topic name editor table */
         .name-row { display: flex; align-items: center; gap: .5rem; padding: .4rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .name-row:last-child { border-bottom: none; }
@@ -146,9 +183,6 @@
         <div class="flex justify-center gap-3">
             <button id="adminBtn" class="btn-red px-6 py-2.5 text-sm flex items-center gap-2">
                 <i class="fas fa-crown"></i> Admin
-            </button>
-            <button id="editNamesBtn" class="btn-green px-6 py-2.5 text-sm flex items-center gap-2">
-                <i class="fas fa-pen"></i> Tételek neve
             </button>
         </div>
     </div>
@@ -197,16 +231,73 @@
     <div id="adminModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden">
         <div class="modal-panel max-w-sm w-full p-8">
             <h3 class="font-display text-2xl font-bold mb-6 flex items-center gap-3">
-                <i class="fas fa-crown text-yellow-400"></i> Admin reset
+                <i class="fas fa-crown text-yellow-400"></i> Admin
             </h3>
-            <input type="password" id="adminPass" placeholder="Jelszó" class="w-full p-3 mb-4 text-base">
-            <div class="flex gap-3">
-                <button id="adminResetBtn" class="btn-red flex-1 py-3 flex items-center justify-center gap-2">
-                    <i class="fas fa-broom"></i> Reset minden
-                </button>
-                <button id="adminCloseBtn" class="btn-gray flex-1 py-3">Mégse</button>
+            <!-- Login form -->
+            <div id="adminLoginSection">
+                <input type="password" id="adminPass" placeholder="Jelszó" class="w-full p-3 mb-3 text-base">
+                <div class="flex gap-3">
+                    <button id="adminLoginBtn" class="btn-green flex-1 py-3 flex items-center justify-center gap-2">
+                        <i class="fas fa-unlock"></i> Belépés
+                    </button>
+                    <button id="adminCloseBtn" class="btn-gray flex-1 py-3">Mégse</button>
+                </div>
+                <p id="adminPassError" class="text-red-400 text-xs mt-3 text-center hidden">❌ Helytelen jelszó!</p>
             </div>
-            <p class="text-xs text-gray-600 mt-4 text-center">Jelszó: <code class="text-gray-400">VAGBigZ</code></p>
+            <!-- Admin actions – only visible after login -->
+            <div id="adminActionsSection" class="hidden">
+                <button id="adminResetAllBtn" class="btn-red w-full py-3 flex items-center justify-center gap-2 mb-2">
+                    <i class="fas fa-broom"></i> Reset — összes kihúzás
+                </button>
+                <button id="adminResetSelectBtn" class="w-full py-3 flex items-center justify-center gap-2 mb-3 font-bold rounded-xl transition-all" style="background:rgba(239,100,68,0.2);border:1px solid rgba(239,100,68,0.4);color:#fb923c;">
+                    <i class="fas fa-list-check"></i> Reset — kiválasztott tételek
+                </button>
+                <button id="editNamesBtn" class="btn-green w-full py-3 flex items-center justify-center gap-2 mb-3">
+                    <i class="fas fa-pen"></i> Tételek neve szerkesztése
+                </button>
+                <button id="adminCloseBtn2" class="btn-gray w-full py-3">Bezárás</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ─── SELECTIVE RESET MODAL ─── -->
+    <div id="selectiveResetModal" class="fixed inset-0 modal-backdrop flex items-center justify-center z-50 p-4 hidden">
+        <div class="modal-panel w-full max-w-3xl max-h-[92vh] flex flex-col">
+            <div class="p-6 flex items-center justify-between" style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                <div>
+                    <h3 class="font-display text-2xl font-bold">🎯 Szelektív reset</h3>
+                    <p class="text-gray-500 text-sm mt-1">Válaszd ki melyik kihúzott tételeket törlöd</p>
+                </div>
+                <button id="closeSelectiveReset" class="btn-gray p-2.5"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- Subject tabs -->
+            <div class="px-6 pt-4 pb-2 flex flex-wrap gap-2" id="resetSubjectTabs"></div>
+
+            <!-- Topic chips for selected subject -->
+            <div class="flex-1 overflow-y-auto px-6 pb-4">
+                <div class="flex items-center justify-between mb-3 mt-2">
+                    <span id="resetSubjectTitle" class="text-sm font-semibold text-gray-400"></span>
+                    <div class="flex gap-2">
+                        <button id="resetSelectAllDrawn" class="text-xs px-3 py-1.5 rounded-lg font-semibold" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);">
+                            Mind kijelöl
+                        </button>
+                        <button id="resetDeselectAll" class="text-xs px-3 py-1.5 rounded-lg font-semibold btn-gray">
+                            Töröl mind
+                        </button>
+                    </div>
+                </div>
+                <div id="resetTopicChips" class="flex flex-wrap gap-2"></div>
+            </div>
+
+            <!-- Selected count + confirm -->
+            <div class="p-6 flex items-center gap-4" style="border-top:1px solid rgba(255,255,255,0.08);">
+                <div id="resetSelectedCount" class="text-sm text-gray-400 flex-1"></div>
+                <button id="confirmSelectiveReset" class="btn-red px-8 py-3 flex items-center gap-2 disabled:opacity-40" disabled>
+                    <i class="fas fa-rotate-left"></i> Reset kijelöltek
+                </button>
+                <button id="closeSelectiveReset2" class="btn-gray px-6 py-3">Mégse</button>
+            </div>
         </div>
     </div>
 
@@ -371,7 +462,6 @@
 
     // ─── RESET ALL ───
     async function resetAll() {
-        // Keep names, clear drawn flags
         const updates = {};
         Object.keys(subjects).forEach(sub => {
             for (let i = 1; i <= 30; i++) {
@@ -381,6 +471,100 @@
         });
         await update(ref(db), updates);
     }
+
+    // ─── SELECTIVE RESET ───
+    let resetSubject = Object.keys(subjects)[0];
+    let selectedForReset = new Set(); // "sub:num" strings
+
+    function openSelectiveReset() {
+        selectedForReset = new Set();
+        resetSubject = Object.keys(subjects)[0];
+        renderResetSubjectTabs();
+        renderResetTopicChips();
+        document.getElementById('selectiveResetModal').classList.remove('hidden');
+    }
+
+    function renderResetSubjectTabs() {
+        const tabs = document.getElementById('resetSubjectTabs');
+        tabs.innerHTML = '';
+        Object.entries(subjects).forEach(([key, sub]) => {
+            const drawn = getDrawn(key);
+            const btn = document.createElement('button');
+            btn.className = `px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                key === resetSubject
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/40'
+                    : 'bg-white/5 text-gray-400 border border-white/10 hover:border-white/20'
+            }`;
+            btn.innerHTML = `${sub.name} ${drawn > 0 ? `<span class="text-red-400 font-bold">${drawn}</span>` : ''}`;
+            btn.onclick = () => { resetSubject = key; renderResetSubjectTabs(); renderResetTopicChips(); };
+            tabs.appendChild(btn);
+        });
+    }
+
+    function renderResetTopicChips() {
+        const container = document.getElementById('resetTopicChips');
+        container.innerHTML = '';
+        document.getElementById('resetSubjectTitle').textContent = subjects[resetSubject].name;
+
+        for (let i = 1; i <= 30; i++) {
+            const d = isDrawn(resetSubject, i);
+            const key = `${resetSubject}:${i}`;
+            const selected = selectedForReset.has(key);
+            const chip = document.createElement('div');
+            chip.className = `reset-topic-chip ${d ? 'drawn-chip' : ''} ${selected ? 'selected-chip' : ''}`;
+            const name = getName(resetSubject, i);
+            chip.title = name || `${i}. tétel`;
+            chip.textContent = i;
+            if (d) {
+                chip.onclick = () => {
+                    if (selectedForReset.has(key)) selectedForReset.delete(key);
+                    else selectedForReset.add(key);
+                    renderResetTopicChips();
+                    updateResetCount();
+                };
+            }
+            container.appendChild(chip);
+        }
+        updateResetCount();
+    }
+
+    function updateResetCount() {
+        const count = selectedForReset.size;
+        document.getElementById('resetSelectedCount').textContent =
+            count > 0 ? `${count} tétel kijelölve resetelésre` : 'Kattints a piros tételekre a kijelöléshez';
+        document.getElementById('confirmSelectiveReset').disabled = count === 0;
+    }
+
+    document.getElementById('resetSelectAllDrawn').onclick = () => {
+        for (let i = 1; i <= 30; i++) {
+            if (isDrawn(resetSubject, i)) selectedForReset.add(`${resetSubject}:${i}`);
+        }
+        renderResetTopicChips();
+    };
+    document.getElementById('resetDeselectAll').onclick = () => {
+        for (let i = 1; i <= 30; i++) selectedForReset.delete(`${resetSubject}:${i}`);
+        renderResetTopicChips();
+    };
+
+    document.getElementById('confirmSelectiveReset').onclick = async () => {
+        if (selectedForReset.size === 0) return;
+        const updates = {};
+        selectedForReset.forEach(key => {
+            const [sub, num] = key.split(':');
+            const name = getName(sub, parseInt(num));
+            updates[`tetelek/${sub}/${num}`] = name ? { name, drawn: false } : { drawn: false };
+        });
+        await update(ref(db), updates);
+        selectedForReset = new Set();
+        document.getElementById('selectiveResetModal').classList.add('hidden');
+        alert(`✅ ${Object.keys(updates).length} tétel sikeresen resetelve!`);
+    };
+
+    function closeSelectiveReset() {
+        document.getElementById('selectiveResetModal').classList.add('hidden');
+    }
+    document.getElementById('closeSelectiveReset').onclick = closeSelectiveReset;
+    document.getElementById('closeSelectiveReset2').onclick = closeSelectiveReset;
 
     // ─── EDIT NAMES MODAL ───
     function openEditNames() {
@@ -458,21 +642,52 @@
         currentTopic = null;
     };
 
+    function closeAdmin() {
+        document.getElementById('adminModal').classList.add('hidden');
+        document.getElementById('adminLoginSection').classList.remove('hidden');
+        document.getElementById('adminActionsSection').classList.add('hidden');
+        document.getElementById('adminPass').value = '';
+        document.getElementById('adminPassError').classList.add('hidden');
+    }
+
     document.getElementById('adminBtn').onclick = () =>
         document.getElementById('adminModal').classList.remove('hidden');
-    document.getElementById('adminCloseBtn').onclick = () =>
-        document.getElementById('adminModal').classList.add('hidden');
-    document.getElementById('adminResetBtn').onclick = async () => {
+    document.getElementById('adminCloseBtn').onclick = closeAdmin;
+    document.getElementById('adminCloseBtn2').onclick = closeAdmin;
+
+    document.getElementById('adminLoginBtn').onclick = () => {
         const pass = document.getElementById('adminPass').value;
-        if (pass !== ADMIN_PASS) { alert('❌ Helytelen jelszó!'); return; }
-        if (!confirm('⚠️ Biztosan törlöd az összes kihúzást? (A nevek megmaradnak)')) return;
-        document.getElementById('adminModal').classList.add('hidden');
-        document.getElementById('adminPass').value = '';
+        if (pass !== ADMIN_PASS) {
+            document.getElementById('adminPassError').classList.remove('hidden');
+            document.getElementById('adminPass').value = '';
+            return;
+        }
+        document.getElementById('adminPassError').classList.add('hidden');
+        document.getElementById('adminLoginSection').classList.add('hidden');
+        document.getElementById('adminActionsSection').classList.remove('hidden');
+    };
+
+    // Enter key on password field
+    document.getElementById('adminPass').addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('adminLoginBtn').click();
+    });
+
+    document.getElementById('adminResetAllBtn').onclick = async () => {
+        if (!confirm('⚠️ Biztosan törlöd AZ ÖSSZES kihúzást? (A nevek megmaradnak)')) return;
+        closeAdmin();
         await resetAll();
         alert('✅ Reset kész!');
     };
 
-    document.getElementById('editNamesBtn').onclick = openEditNames;
+    document.getElementById('adminResetSelectBtn').onclick = () => {
+        closeAdmin();
+        openSelectiveReset();
+    };
+
+    document.getElementById('editNamesBtn').onclick = () => {
+        closeAdmin();
+        openEditNames();
+    };
     document.getElementById('closeEditNames').onclick = () =>
         document.getElementById('editNamesModal').classList.add('hidden');
     document.getElementById('closeEditNames2').onclick = () =>
@@ -480,7 +695,7 @@
     document.getElementById('saveNamesBtn').onclick = saveNames;
 
     // Close on backdrop click
-    ['topicModal','confirmModal','adminModal','editNamesModal'].forEach(id => {
+    ['topicModal','confirmModal','adminModal','editNamesModal','selectiveResetModal'].forEach(id => {
         document.getElementById(id).addEventListener('click', e => {
             if (e.target.id === id) e.target.classList.add('hidden');
         });
